@@ -20,5 +20,5 @@ results/
 ehthumbs.db
 Thumbs.db
 .blank
-.Rproj.user
-.Rproj
+*.Rproj.user
+*.Rproj

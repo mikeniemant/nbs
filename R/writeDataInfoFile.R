@@ -2,7 +2,7 @@
 #'
 #' This function creates an data description file
 #'
-#' Version 1.1 2019-11-15
+#' Version 1.2 2019-11-15
 #'
 #' @param file.dir = file directory
 #' @param file.name = file name
@@ -18,7 +18,7 @@ writeDataInfoFile <- function(file.dir, file.name = "data_description", info.l, 
   file.path <- paste0(file.dir, "/", file.name, ".", file.type)
   
   # Add info column
-  if(detail) {
+  if(info) {
     info.l <- append(info.l, list(info = ""))
   }
   

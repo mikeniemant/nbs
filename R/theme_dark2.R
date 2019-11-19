@@ -1,16 +1,20 @@
 #' theme_dark2 theme
 #' 
-#' Theme to create dark plots
+#' Theme to create plots with a dark theme
 #' 
-#' Version 1.3 2019-11-18
+#' Version 1.2 2019-11-19
 #' 
 #' This function allows you to plot ggplots with a black theme
-#' @keywords gg_black
+#' @keywords theme_dark2
 #' @export
 #' @examples
-#' gg_black()
+#' data(iris)
+#' library(ggplot2)
+#' ggplot(iris, aes(x = Petal.Width, y = Petal.Length, colour = Species)) +
+#'   geom_point() +
+#'   theme_dark2()
 
-gg_dark2 <- function(lines = "v+h", background.colour = "gray") {
+theme_dark2 <- function(lines = "v+h", background.colour = "gray") {
   
   t <- theme(strip.text.x = element_text(colour="white"),
              strip.text.y = element_text(colour="white"),
@@ -22,6 +26,7 @@ gg_dark2 <- function(lines = "v+h", background.colour = "gray") {
              panel.background = element_rect(fill=background.colour),
              panel.border = element_blank(),
              plot.background = element_rect(fill="black"),
+             strip.background = element_rect(fill="darkgray"),
              legend.background=element_rect(fill='black'),
              legend.title=element_text(colour="white"),
              legend.text=element_text(colour="white"),

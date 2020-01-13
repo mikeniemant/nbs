@@ -1,4 +1,4 @@
-#' generate headings function
+#' Generate Headings
 #' 
 #' This function prints out the head for a script
 #' Version 1.9 2019-10-29

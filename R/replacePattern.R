@@ -1,4 +1,4 @@
-#' Replace Pattern Function
+#' Replace Pattern
 #'
 #' This function sets all paths
 #'

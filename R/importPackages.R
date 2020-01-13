@@ -1,6 +1,7 @@
-#' Import Packages function
+#' Import Packages
 #'
 #' This function imports packages and, if not available, installs them.
+#' 
 #' Version 1.3 2019-05-14
 #' 
 #' @param packages list of required packages

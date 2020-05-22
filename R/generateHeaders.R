@@ -1,8 +1,8 @@
 #' Generate Headings
-#' 
+#'
 #' This function prints out the head for a script
 #' Version 1.9 2019-10-29
-#' 
+#'
 #' @param type Type of heading (script, function)
 #' @param title Title of section
 #' @keywords genHeadings
@@ -12,11 +12,11 @@
 
 generateHeaders <- function(type = "script", title = "", work.email = T) {
   if(work.email) {
-    email.s = "m.niemantsverdriet@skylinedx.com"
+    email.s = "test@com"
   } else {
-    email.s = "michael_niemantsverdriet@hotmail.com"
+    email.s = "test@com"
   }
-  
+
   if(type == "script") {
     cat("####", "\n",
         "#Filename : ", title, "\n",
@@ -58,9 +58,9 @@ generateHeaders <- function(type = "script", title = "", work.email = T) {
         '    toc_depth: 3', '\n',
         '    toc_float: false', '\n',
         '    toc: true', '\n',
-        '    #fig_width: 6', '\n', 
+        '    #fig_width: 6', '\n',
         '    #fig_height: 8', '\n',
-        '    #theme: darkly', '\n', 
+        '    #theme: darkly', '\n',
         '    #highlight: zenburn #espresso or zenburn', '\n',
         'editor_options: ', '\n',
         '  chunk_output_type: console', '\n',
@@ -68,13 +68,13 @@ generateHeaders <- function(type = "script", title = "", work.email = T) {
         '```{r setup, include = F}', '\n',
         'knitr::opts_chunk$set(cache = T)', '\n',
         '```', '\n',
-        
+
         '# Prepare work environment', '\n',
         '```{r pwe cache = F}', '\n',
         ' # Import packages and function', '\n',
         'library(nbs)', '\n',
         'importPackages("tidyverse", "captioner", "kableExtra", silent = T)', '\n', '\n',
-        
+
         '# Define paths', '\n',
         'PATHS <- getPaths("")', '\n',
         '```', sep = '')

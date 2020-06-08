@@ -13,12 +13,12 @@
 #' getPaths()
 
 getPaths <- function(main.path, report.name = NA,
-                     type = "report", todo = T, save.output = F) {
+                     type = "report", save.output = F) {
   # Add slash
   if(substr(main.path, nchar(main.path), nchar(main.path)) != "/") {
     main.path <- paste0(main.path, "/")
   }
-  
+
   # Check existence of directory
   if(!dir.exists(main.path)) {
     return("Directory does not exist")

@@ -28,7 +28,7 @@ replacePattern <- function(dir,
   if(substr(dir, nchar(dir), nchar(dir)) != "/") {
     dir <- paste0(dir, "/")
   }
-  
+
   if(length(file.pattern) == 0) {
     file.pattern <- paste0("(", paste(file.types, collapse = "|"),
                              ")$")
@@ -42,7 +42,7 @@ replacePattern <- function(dir,
   }
   fileFindReplaceVerbose <- function(filepath, pattern, replacement) {
     file_contents <- readLines(filepath)
-    
+
     pattern.lines <- NULL
     for(i in 1:length(file_contents)) {
       if(grepl(pattern = pattern, x = file_contents[i]))
@@ -84,7 +84,7 @@ replacePattern <- function(dir,
       cat(file_contents, file = filepath, sep = "\n")
     }
   }
-  
+
   for(doc in rel.docs) {
     print(doc)
     dir.doc <- paste0(dir, doc)

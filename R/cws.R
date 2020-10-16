@@ -2,7 +2,7 @@
 #'
 #' This function allows you to clear the global environment and remove all plots
 #'
-#' Version 1.7 2020-05-22
+#' Version 1.8 2020-10-16
 #'
 #' @param pattern pattern of objects name to not be removed (default = "DIR")
 #' @param restart restart R session (default = F)
@@ -26,8 +26,12 @@ cws <- function(pattern = "DIR", restart = F) {
 
   # Remove all objects
   objs <- ls(pos = ".GlobalEnv")
-  rm(list = objs[-grep(pattern, objs)], pos = ".GlobalEnv")
-
+  if(pattern %in% objs) {
+    rm(list = objs[-grep(pattern, objs)], pos = ".GlobalEnv")  
+  } else {
+    rm(list = objs, pos = ".GlobalEnv")  
+  }
+  
   # Turn off plot visualisation
   if(dev.cur() != 1) {
     dev.off()
@@ -35,7 +39,7 @@ cws <- function(pattern = "DIR", restart = F) {
 
   # Restart R
   if(restart) {
-    # unload all pakcages
+    # unload all packages
     lapply(names(sessionInfo()$loadedOnly), require, character.only = TRUE)
     invisible(lapply(paste0('package:', names(sessionInfo()$otherPkgs)), detach, character.only=TRUE, unload=TRUE, force=TRUE))
     .rs.restartR()

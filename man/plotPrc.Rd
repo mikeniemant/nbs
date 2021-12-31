@@ -4,10 +4,12 @@
 \alias{plotPrc}
 \title{Plot Precision Recall Curve}
 \usage{
-plotPrc(x)
+plotPrc(x, colour = "Model")
 }
 \arguments{
 \item{x}{Tibble with precision and recall computed by the performance R package}
+
+\item{colour}{Name of colour}
 }
 \value{
 A ggplot containing the precision recall curve

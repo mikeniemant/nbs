@@ -4,10 +4,12 @@
 \alias{plotRoc}
 \title{Plot Receiver Operator Curve}
 \usage{
-plotRoc(x)
+plotRoc(x, colour = "Model")
 }
 \arguments{
 \item{x}{Tibble with sensitivity and specificity computed by the performance R package}
+
+\item{colour}{Name of colour}
 }
 \value{
 A ggplot containing the receiver operator curve

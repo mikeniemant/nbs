@@ -1,5 +1,7 @@
 ---
 output: github_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
@@ -18,7 +20,7 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-NoBodySorrow (NBS) is an R package with a range of functions to improve programming workflow in R.
+NoBodySorrow (nbs) is an R package with a range of functions to improve programming workflow in R.
 
 ## Installation
 
@@ -29,16 +31,91 @@ remove.packages("nbs")
 devtools::install_github("mikeniemant/nbs")
 ```
 
-# Functions
-## copmuteBaseNetBenefit
+# Load package
+```{r}
+library(nbs)
+library(tidymodels)
+ggplot2::theme_set(ggplot2::theme_bw())
+```
 
-## copmuteNetBenefit
+# Dummy datasets
+## single model tibble
+```{r}
+data(single_model_tibble)
+single_model_tibble
+```
+
+## multi model tibble
+```{r}
+data(multi_model_tibble)
+multi_model_tibble
+```
+
+# Functions
+## computeBaseNetBenefit
+```{r}
+base_nbt <- computeBaseNetBenefit(single_model_tibble$y)
+```
+
+## computeNetBenefit
+```{r}
+nbt <- computeNetBenefit(pt = base_nbt$pt, 
+                         y = single_model_tibble$y, 
+                         pred = single_model_tibble$pred)
+
+nbt <- base_nbt %>% # TODO: should be the original data frame
+  left_join(nbt,
+            by = "pt")
+
+ggplot(nbt %>% 
+         pivot_longer(cols = -pt, names_to = "model", values_to = "nbt") %>% 
+         filter(nbt >= -0.1),
+       aes(x = pt, y = nbt, colour = model, linetype = model)) + 
+  geom_line() +
+  labs(x = "Threshold probability (%)",
+       y = "Net benefit",
+       colour = "Model",
+       linetype = "Model")
+```
+
+## computeCalibration
+```{r}
+computeCalibration(labs = single_model_tibble$y, preds = single_model_tibble$pred, event_level = "1")
+```
 
 ## plotCalibration
+```{r}
+dat <- multi_model_tibble %>% 
+  nest(dat = c(y, pred)) %>% 
+  mutate(cal = map(dat, ~ computeCalibration(labs = .x$y,
+                                             preds = .x$pred,
+                                             event_level = "1",
+                                             plot = F)))
+
+# Plot calibration curve for all models
+plotCalibration(dat %>% 
+  unnest(cal))
+```
+TODO:
+- Set alpha geom_smooth
 
 ## plotPrc
+```{r}
+dat <- multi_model_tibble %>% 
+  nest(dat = c(y, pred)) %>% 
+  mutate(pr = map(dat, ~ .x %>% pr_curve(pred, truth = y, event_level = "second"))) %>% 
+  unnest(pr)
+plotPrc(dat)
+```
 
 ## plotRoc
+```{r}
+dat <- multi_model_tibble %>% 
+  nest(dat = c(y, pred)) %>% 
+  mutate(roc = map(dat, ~ .x %>% roc_curve(pred, truth = y, event_level = "second"))) %>% 
+  unnest(roc)
+plotRoc(dat)
+```
 
 ## cws
 Clear work space
@@ -47,7 +124,7 @@ Clear work space
   - (Close all clusters)
 
 ## findTodo
-Find all `#TODO` statements in all .R and .Rmd files in a a directory.
+Find all `#TODO` statements in all .R and .Rmd files in a directory.
 
 ## replacePattern
 Finds and replaces a  particular pattern in all .R and .Rmd files in a directory.

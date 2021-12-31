@@ -4,7 +4,13 @@
 \alias{plotCalibration}
 \title{Plot calibration}
 \usage{
-plotCalibration(x, plot_errorbar = T, plot_smooth = T, colour = "Model")
+plotCalibration(
+  x,
+  plot_errorbar = T,
+  plot_smooth = T,
+  group = NULL,
+  title = NULL
+)
 }
 \arguments{
 \item{x}{tibble with the computed mean_pred and obs_frac per model}
@@ -13,7 +19,9 @@ plotCalibration(x, plot_errorbar = T, plot_smooth = T, colour = "Model")
 
 \item{plot_smooth}{Plot smooth lines (default = TRUE)}
 
-\item{colour}{Define name colour}
+\item{group}{Variable to group coordinates}
+
+\item{title}{Plot title}
 }
 \value{
 A ggplot containing the calibration plot

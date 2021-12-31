@@ -157,7 +157,8 @@ dat <- multi_model_tibble %>%
 
 # Plot calibration curve for all models
 plotCalibration(dat %>% 
-  unnest(cal))
+                  unnest(cal), 
+                group = "model")
 #> `geom_smooth()` using formula 'y ~ x'
 #> Warning: Removed 8 rows containing missing values (geom_smooth).
 ```
@@ -172,7 +173,7 @@ dat <- multi_model_tibble %>%
   nest(dat = c(y, pred)) %>% 
   mutate(pr = map(dat, ~ .x %>% pr_curve(pred, truth = y, event_level = "second"))) %>% 
   unnest(pr)
-plotPrc(dat)
+plotPrc(dat, group = "model")
 ```
 
 <img src="man/figures/README-unnamed-chunk-10-1.png" width="100%" />
@@ -184,7 +185,7 @@ dat <- multi_model_tibble %>%
   nest(dat = c(y, pred)) %>% 
   mutate(roc = map(dat, ~ .x %>% roc_curve(pred, truth = y, event_level = "second"))) %>% 
   unnest(roc)
-plotRoc(dat)
+plotRoc(dat, group = "model")
 ```
 
 <img src="man/figures/README-unnamed-chunk-11-1.png" width="100%" />

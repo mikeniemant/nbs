@@ -42,7 +42,8 @@ dat <- multi_model_tibble %>%
 ```{r}
 plotRoc(dat %>% 
           dplyr::mutate(roc = purrr::map(dat, ~ .x %>% yardstick::roc_curve(pred, truth = y))) %>% 
-          tidyr::unnest(roc))
+          tidyr::unnest(roc),
+        group = "model")
 ```
 
 ## AUROC
@@ -56,7 +57,9 @@ dat
 ```{r}
 plotPrc(dat %>% 
           dplyr::mutate(prc = purrr::map(dat, ~ .x %>% yardstick::pr_curve(pred, truth = y))) %>% 
-          tidyr::unnest(prc))
+          tidyr::unnest(prc), 
+        group = "model", 
+        title = "Precision Recall Curve")
 ```
 
 ## AUPRC

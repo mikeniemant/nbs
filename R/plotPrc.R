@@ -5,7 +5,7 @@
 #' @export
 plotPrc <- function(x) {
   x %>%
-    ggplot2::ggplot(ggplot2::aes(x = recall, y = precision, colour = id_outer)) +
+    ggplot2::ggplot(ggplot2::aes(x = recall, y = precision, colour = model)) +
     ggplot2::geom_path() +
     ggplot2::geom_abline(slope = -1, intercept = 1, color = "black", linetype = 2) +
     ggplot2::labs(x = "Recall (TPR, sensitivity)",

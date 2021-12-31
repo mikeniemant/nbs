@@ -5,7 +5,7 @@
 #' @export
 plotRoc <- function(x) {
   x %>%
-    ggplot2::ggplot(ggplot2::aes(x = 1-specificity, y = sensitivity, colour = id_outer)) +
+    ggplot2::ggplot(ggplot2::aes(x = 1-specificity, y = sensitivity, colour = model)) +
     ggplot2::geom_path() +
     ggplot2::geom_abline(slope = 1, intercept = 0, color = "black", linetype = 2) +
     ggplot2::labs(x = "False positive rate (1-specificity)",

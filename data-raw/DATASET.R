@@ -7,7 +7,7 @@ generateDataset <- function(nobs = 100, nvar = 3, nreal = 2, seed = 42, name = N
   y_class <- sapply(y_logit, function(x) rbinom(n = 1, size = 1, prob = x))
 
   if(is.null(name)) {
-    dat <- dplyr::tibble(y = y_class,
+    dat <- dplyr::tibble(y = factor(y_class),
                          pred = y_logit)
   } else{
     dat <- dplyr::tibble(model = !!name,

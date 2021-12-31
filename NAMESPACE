@@ -2,6 +2,7 @@
 
 export("%>%")
 export(computeBaseNetBenefit)
+export(computeCalibration)
 export(computeNetBenefit)
 export(cws)
 export(findTodo)

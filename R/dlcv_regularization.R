@@ -149,7 +149,7 @@ fipL1 <- function(x, plot = T, min_n = 0, y_nudge = NULL) {
   # Compare penalty results tidy and glmnet
   res <- tibble(method = rep(c("glmnet_1se"#,
                                #"glmnet_min"
-  ), each = 10)) %>%
+  ), each = nrow(x))) %>%
     bind_cols(bind_rows(#l1_tidy_folds %>%
       #  select(id, best_model) %>%
       #  unnest(best_model) %>%
@@ -167,7 +167,7 @@ fipL1 <- function(x, plot = T, min_n = 0, y_nudge = NULL) {
 
   # Compare number of selected features
   res <- tibble(method = rep(c("glmnet_1se"# , "glmnet_min"
-  ), each = 10)) %>%
+  ), each = nrow(x))) %>%
     bind_cols(bind_rows(#l1_tidy_folds %>%
       #select(id, best_model) %>%
       #unnest(best_model) %>%

@@ -23,7 +23,6 @@ knitr::opts_chunk$set(
 NoBodySorrow (nbs) is an R package with a range of functions to improve programming workflow in R.
 
 ## Installation
-
 ```{r, eval = F}
 detach(package:nbs, unload=TRUE)
 library(utils)
@@ -35,7 +34,7 @@ devtools::install_github("mikeniemant/nbs")
 ```{r}
 library(nbs)
 library(tidymodels)
-ggplot2::theme_set(ggplot2::theme_bw())
+theme_set(theme_bw() + theme(plot.title = element_text(hjust = 0.5)))
 ```
 
 # Dummy datasets
@@ -63,7 +62,7 @@ nbt <- computeNetBenefit(pt = base_nbt$pt,
                          y = single_model_tibble$y, 
                          pred = single_model_tibble$pred)
 
-nbt <- base_nbt %>% # TODO: should be the original data frame
+nbt <- base_nbt %>% 
   left_join(nbt,
             by = "pt")
 
@@ -97,8 +96,6 @@ plotCalibration(dat %>%
                   unnest(cal), 
                 group = "model")
 ```
-TODO:
-- Set alpha geom_smooth
 
 ## plotPrc
 ```{r}
@@ -129,6 +126,9 @@ Find all `#TODO` statements in all .R and .Rmd files in a directory.
 
 ## replacePattern
 Finds and replaces a  particular pattern in all .R and .Rmd files in a directory.
+
+## objSize
+Compute memory size of objects in the R environment.
 
 # Notes
 Open a new issue [here](https://github.com/mikeniemant/nbs/issues) for any bug reports or feature requests.

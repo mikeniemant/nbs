@@ -40,8 +40,8 @@ library(tidymodels)
 #> x dplyr::filter()  masks stats::filter()
 #> x dplyr::lag()     masks stats::lag()
 #> x recipes::step()  masks stats::step()
-#> • Dig deeper into tidy modeling with R at https://www.tmwr.org
-ggplot2::theme_set(ggplot2::theme_bw())
+#> • Use suppressPackageStartupMessages() to eliminate package startup messages
+theme_set(theme_bw() + theme(plot.title = element_text(hjust = 0.5)))
 ```
 
 # Dummy datasets
@@ -103,7 +103,7 @@ nbt <- computeNetBenefit(pt = base_nbt$pt,
                          y = single_model_tibble$y, 
                          pred = single_model_tibble$pred)
 
-nbt <- base_nbt %>% # TODO: should be the original data frame
+nbt <- base_nbt %>% 
   left_join(nbt,
             by = "pt")
 
@@ -164,7 +164,6 @@ plotCalibration(dat %>%
 ```
 
 <img src="man/figures/README-unnamed-chunk-9-1.png" width="100%" />
-TODO: - Set alpha geom\_smooth
 
 ## plotPrc
 
@@ -203,6 +202,10 @@ Find all `#TODO` statements in all .R and .Rmd files in a directory.
 
 Finds and replaces a particular pattern in all .R and .Rmd files in a
 directory.
+
+## objSize
+
+Compute memory size of objects in the R environment.
 
 # Notes
 

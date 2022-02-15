@@ -4,8 +4,8 @@
 #'
 #' Version 1.0 2020-05-22
 #'
-#' @param dir = Main path of project
-#' @param save.output = Boolean for saving the TODO output
+#' @param dir Main path of project
+#' @param save.output Boolean for saving the TODO output
 #' @keywords findTodo
 #' @export
 findTodo <- function(dir, save.output = F) {

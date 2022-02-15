@@ -7,9 +7,9 @@
 findTodo(dir, save.output = F)
 }
 \arguments{
-\item{dir}{= Main path of project}
+\item{dir}{Main path of project}
 
-\item{save.output}{= Boolean for saving the TODO output}
+\item{save.output}{Boolean for saving the TODO output}
 }
 \description{
 Find all todo annotatations in project directory

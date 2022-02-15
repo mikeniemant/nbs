@@ -1,6 +1,6 @@
 #' Clean Work Space
 #'
-#' This function allows you to clear the global environment and remove all plots
+#' This function allows you to clear the global environment and remove all plots.
 #'
 #' Version 1.8 2020-10-16
 #'

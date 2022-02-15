@@ -12,7 +12,7 @@ cws(pattern = "DIR", restart = F)
 \item{restart}{restart R session (default = F)}
 }
 \description{
-This function allows you to clear the global environment and remove all plots
+This function allows you to clear the global environment and remove all plots.
 }
 \details{
 Version 1.8 2020-10-16

@@ -1,0 +1,260 @@
+---
+title: "dlcv_template"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{dlcv_template}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  cache = F, 
+  fig.width = 7,
+  fig.height = 7
+)
+```
+
+```{r setup}
+library(tidymodels)
+library(nbs)
+theme_set(theme_bw() + theme(plot.title = element_text(hjust = 0.5)))
+```
+
+# Generate data
+## Dataset
+```{r}
+nobs = 200
+nvar = 10
+nreal = 3
+
+set.seed(42)
+
+x <- matrix(rnorm(nobs * nvar), nobs, nvar)
+beta <- c(2+rnorm(nreal, 0, 1), rep(0, nvar - nreal))
+y_cont <- c(t(beta) %*% t(x)) + rnorm(nobs, sd = 3)
+y_logit <- exp(y_cont)/(1+exp(y_cont))
+y_class <- sapply(y_logit, function(x) rbinom(n = 1, size = 1, prob = x))
+dat <- tibble(y = forcats::fct_rev(factor(y_class)), 
+              study_id = 1:nobs,
+              as_tibble(x))
+
+features <- dat %>% select(-y, -study_id) %>% colnames()
+```
+
+## Preliminary diagnosis
+```{r}
+prel_diag_metrics <- tibble(sens = 0.7, spec = 0.7, ppv = 0.5)
+```
+
+# Quick data analysis
+```{r}
+dat %>% count(y)
+```
+
+# Prepare work environment
+```{r}
+# Import data
+# load("data.rds")
+# - x: tibble or data frame with the following columns
+#   - ID: preferably, "study_id"
+#   - y (factor, with the event as the first level)
+#   - all predictors/features
+# - features: character vector of all features of interest
+# --> for now, we will use the multi_model_tibble dummy dataset
+
+# Define DLCV parameters
+form <- as.formula(paste0("y ~ ", paste(features, collapse = " + ")))
+
+group <- "study_id"
+strata <- "y"
+
+k <- 3
+```
+
+# Prepare DLCV
+```{r}
+folds <- createFolds(dat, k, group, strata)
+
+# library(doParallel)
+# cl <- makePSOCKcluster(parallel::detectCores(logical = FALSE))
+# registerDoParallel(cl)
+# --> without CPU ~ 14%
+# --> with CPU ~ 40%
+
+# Prepare recipe
+rec <- recipe(form, 
+              data = dat)
+  
+rec
+rec %>% prep() %>% bake(new_data = NULL)
+```
+
+L1
+- Min lambda
+- 1se lambda
+
+Either optimize with tidymodels or R `glmnet` package
+
+Boruta in combination with
+- logistic regression
+- L1 regularization lambda_1se
+- L1 regularization lambda_min
+
+SVM (polynomial)
+- Transformation: standardization
+- Package: `e1071`
+- Hyperparameter:
+  - Cost (C): the cost of predicting a sample within or on the wrong side of the margin. 1
+- degree: The polynomial degree. 1
+- scale_factor: A scaling factor for the kernel. 1
+- margin: The epsilon in the SVM insensitive loss function (regression only)
+
+K nearest neighbor
+- Transformation: standardization
+- Package: `kknn`
+- Hyperparameter:
+  - neighbors: 5
+  - weight_func: optimal
+  - dist_power: parameter used when calculating the Minkowski distance
+
+Random Forest
+- Transformation: none
+- Package: `randomForest`, and others
+- Hyperparameter:
+  - TODO
+
+XGBoost
+- Transformation: none
+- Package: `xgboost`
+- Hyperparameter:
+  - neighbors: 5
+  - weight_func: optimal
+  - dist_power: parameter used when calculating the Minkowski distance
+
+# Select models and run DLCV
+```{r}
+dlcv_lr <- dlcvLr(folds, rec)
+dlcv_l1 <- dlcvL1(folds, rec)
+dlcv_boruta <- dlcvBoruta(folds, rec)
+# dlcv_svm_no_hp <- dlcvSvmNoHp(folds, rec)
+# dlcv_svm_hp <- dlcvSvm(folds, rec)
+# dlcv_knn_no_hp <- dlcvKnnNoHp(folds, rec)
+# dlcv_knn_hp <- dlcvKnn(folds, rec)
+```
+
+# Combine outputs
+```{r}
+# Define data frame
+dlcv_obj_names <- ls(pattern = "dlcv_")
+models <- unname(sapply(dlcv_obj_names, function(x) stringr::str_sub(x, 6, nchar(x))))
+res <- lapply(dlcv_obj_names, get)
+names(res) <- models
+
+res_metrics <- tibble(model = models) %>% 
+  mutate(dlcv = res)
+
+# Reorder data frame
+# TODO
+
+# Compute AUC
+res_metrics <- res_metrics %>% 
+  mutate(auc = map2(model, dlcv, ~ computeCvAUC(folds = .y, model = .x)))
+
+# Compute ROC
+res_metrics <- res_metrics %>% 
+  mutate(trn_preds = map(dlcv, ~ .x %>% select(trn_preds) %>% unnest(trn_preds)),
+         tst_preds = map(dlcv, ~ .x %>% select(tst_preds) %>% unnest(tst_preds)),
+         trn_roc = map(trn_preds, ~ roc_curve(.x, y, .pred_1)),
+         tst_roc = map(tst_preds, ~ roc_curve(.x, y, .pred_1))) %>% 
+  select(-dlcv)
+```
+
+# Analyze data
+## DLCV performance
+```{r}
+# Show AUC
+res_metrics %>% 
+  select(auc) %>% 
+  unnest(auc) %>% 
+  mutate(txt = paste0(round(mean_auc, 2), " (", 
+                      round(ci_lower, 2), "-", 
+                      round(ci_upper, 2), ")")) %>% 
+  select(-mean_auc, -ci_lower, -ci_upper, -confidence) %>% 
+  pivot_wider(names_from = "part", values_from = "txt")
+
+# Show train/test ROCs
+res_metrics %>% 
+  select(model, trn_preds) %>% 
+  mutate(roc = map(trn_preds, ~ roc_curve(.x, y, .pred_1))) %>% 
+  select(model, roc) %>% 
+  unnest(roc) %>% 
+  plotRoc(group = "model", title = NULL)
+
+plotDisMet(x = res_metrics, bl = prel_diag_metrics, title = "10CV LR", group = "model", legend = T)
+```
+
+## Individual model performance
+```{r}
+fipLr(dlcv_lr, plot = T)
+fipL1(dlcv_l1, plot = T)
+fipBoruta(dlcv_boruta, plot = T)
+
+plotDisMet(x = dlcv_boruta, 
+           bl = prel_diag_metrics, 
+           title = "10CV Boruta linear regression",
+           group = "id", 
+           legend = T)
+```
+
+# Save output
+```{r}
+# Save object
+# save(res_metrics, file = "tmp")
+```
+
+# Sanity checks
+## LR base R..
+### CV
+```{r eval = F}
+lr_base_folds <- folds %>% 
+  mutate(lr_base_model = map(splits, ~ glm(formula = form, .x %>% analysis() %>% mutate(y = if_else(y == "1", 1, 0)), family = binomial)))
+
+summary(lr_base_folds$lr_base_model[[1]])$coefficients[1:5, 1]
+tidy(lr_base_folds$lr_base_model[[1]])
+```
+
+```{r eval = F}
+## Importance
+lr_base_folds <- lr_base_folds %>% 
+  mutate(coef_estimates = map(lr_base_model, tidy),
+         coef_estimates = map(coef_estimates, ~ {
+           .x %>% 
+             transmute(feature = term, 
+                       estimate = -estimate) %>% # tidymodels bug
+             arrange(-estimate) %>%
+             filter(estimate != 0.0 & feature != "(Intercept)")
+         }))
+
+lr_base_folds_feature_counts <- lr_base_folds %>% 
+  select(coef_estimates) %>% 
+  unnest(coef_estimates) %>% 
+  with_groups(feature, nest) %>% 
+  mutate(mean_coef = map_dbl(data, ~ mean(.x$estimate)),
+         mean_coef_abs = abs(mean_coef)) %>% 
+  arrange(-mean_coef_abs) %>% 
+  slice(1:10)
+
+lr_base_folds_feature_counts %>% 
+  mutate(feature = factor(feature, levels = lr_base_folds_feature_counts$feature)) %>% 
+  unnest(data) %>% 
+  ggplot(aes(x = feature, y = estimate)) +
+  geom_boxplot(aes(y = estimate)) +
+  geom_point() +
+  labs(x = "Feature",
+       y = "Importance (coefficient)")
+```

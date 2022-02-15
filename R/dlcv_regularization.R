@@ -1,0 +1,231 @@
+#' L1 tidymodels
+#'
+#' param folds
+#' param wf
+#' param hp_grid
+#' param v
+#' param r
+#' return
+#' export
+# dlcvInnerL1Tidy <- function(folds, wf, hp_grid, v = 10, r = 1) {
+#   inner_folds <- vfold_cv(folds %>% analysis(),
+#                           v = v,
+#                           repeats = r,
+#                           strata = y)
+#
+#   tune_res <- tune_grid(wf,
+#                         resamples = inner_folds,
+#                         grid = hp_grid)
+#
+#   return(select_best(tune_res, metric = "roc_auc") %>%
+#            left_join(show_best(tune_res, metric = "roc_auc") %>%
+#                        select(.config, mean),
+#                      by = ".config"))
+# }
+
+#' Double Loop Cross Validation L1 Glmnet
+#'
+#' L1 hyper parameter optimization within the inner loop with R glmnet package.
+#'
+#' @param folds Folds
+#' @param features Features
+#' @param lambda "min" or "1se"
+#' @return
+#' @export
+dlcvInnerL1Glmnet <- function(folds, features = NA, lambda = "min") {
+  if(!all(is.na(features))) {
+    cv_glmnet <- glmnet::cv.glmnet(x = folds %>%
+                                     analysis() %>%
+                                     select(all_of(features)) %>%
+                                     as.matrix(),
+                                   y = folds %>%
+                                     analysis() %>%
+                                     mutate(y = if_else(y == "1", 1, 0)) %>%
+                                     pull(y),
+                                   family = "binomial",
+                                   type.measure = "auc")
+  } else {
+    cv_glmnet <- glmnet::cv.glmnet(x = folds %>%
+                                     analysis() %>%
+                                     select(all_of(features)) %>%
+                                     as.matrix(),
+                                   y = folds %>%
+                                     analysis() %>%
+                                     mutate(y = if_else(y == "1", 1, 0)) %>%
+                                     pull(y),
+                                   family = "binomial",
+                                   type.measure = "auc")
+  }
+
+  if(lambda == "min") {
+    res <- tibble(penalty = cv_glmnet$lambda.min,
+                  mean = cv_glmnet$cvm[which(cv_glmnet$lambda %in% cv_glmnet$lambda.min)],
+                  n_features = cv_glmnet$nzero[cv_glmnet$index[1,1]])
+  } else if(lambda == "1se") {
+    res <- tibble(penalty = cv_glmnet$lambda.1se,
+                  mean = cv_glmnet$cvm[which(cv_glmnet$lambda %in% cv_glmnet$lambda.1se)],
+                  n_features = cv_glmnet$nzero[cv_glmnet$index[2,1]])
+  }
+
+  return(res)
+}
+
+#' Double Loop Cross Validation L1
+#'
+#' Double Loop Cross Validation with features selected in the inner loop with either one of the following functions:
+#' - dlcvInnerL1Tidy
+#' - dlcvInnerL1Glmnet
+#'
+#' @param folds rsample object with either group V-fold  or the standard V-fold cross validation folds
+#' @param rec recipes recipe used for training
+#' @return
+#' @export
+dlcvL1 <- function(folds, rec) {
+  # Model
+  l1_spec <- logistic_reg(penalty = tune(),
+                          mixture = 1.0) %>%
+    set_engine("glmnet") %>%
+    set_mode(mode = "classification")
+
+  # Workflow
+  l1_workflow <- workflow() %>%
+    add_recipe(rec) %>%
+    add_model(l1_spec)
+
+  # Hyperparameter grid
+  # l1_hp_grid <- grid_regular(penalty(c(0.0, 1.0)),
+  #                            levels = 3)
+  # l1_hp_grid <- tibble(penalty = 10^seq(-2, -1, length.out = 10))
+
+
+  # Tidy
+  # tictoc::tic()
+  # l1_tidy_folds <- folds %>%
+  #   mutate(best_model = map(splits, ~ dlcvInnerL1Tidy(folds = .x, wf = l1_workflow, hp_grid = l1_hp_grid)),
+  #          final_wf = map2(splits, best_model, ~ l1_workflow %>%
+  #                            finalize_workflow(.y) %>%
+  #                            fit(analysis(.x))),
+  #          map2_dfr(splits, final_wf, dlcvOuter))
+  # tictoc::toc()
+  # 24 sec
+
+  # glmnet
+  # tictoc::tic()
+  # l1_1se_folds <- folds %>%
+  #   mutate(best_model = map(splits, ~ dlcvInnerL1Glmnet(folds = .x, lambda = "1se")),
+  #          final_wf = map2(splits, best_model, ~ l1_workflow %>%
+  #                            finalize_workflow(.y) %>%
+  #                            fit(analysis(.x))),
+  #          map2_dfr(splits, final_wf, dlcvOuter))
+  # tictoc::toc()
+  # 70 sec
+
+  # l1 min
+  l1_min_folds <- folds %>%
+    mutate(best_model = map(splits, ~ dlcvInnerL1Glmnet(folds = .x, features = features, lambda = "min")),
+           final_wf = map2(splits, best_model, ~ l1_workflow %>%
+                             finalize_workflow(.y) %>%
+                             fit(analysis(.x))),
+           map2_dfr(splits, final_wf, dlcvOuter))
+
+  l1_min_folds <- l1_min_folds %>%
+    select(-splits)
+
+  return(l1_min_folds)
+}
+
+#' Feature importance L1 DLCV
+#'
+#' Visualize feature importance of the L1 DLCV results
+#'
+#' @param x DLCV l1 object generated by the dlcvL1 function
+#' @param plot Boolean to visualise plot
+#' @param min_n Minimal number of folds to visualise
+#' @param y_nudge Nudge y coordinate to visualise number of times features was selected in fold.
+#' @return Tibble with the feature importances and number of times selected in folds.
+#' @export
+fipL1 <- function(x, plot = T, min_n = 0, y_nudge = NULL) {
+
+  # Compare penalty results tidy and glmnet
+  res <- tibble(method = rep(c("glmnet_1se"#,
+                               #"glmnet_min"
+  ), each = 10)) %>%
+    bind_cols(bind_rows(#l1_tidy_folds %>%
+      #  select(id, best_model) %>%
+      #  unnest(best_model) %>%
+      #  select(-.config),
+      # l1_1se_folds %>%
+      #   select(id, best_model) %>%
+      #   unnest(best_model),
+      x %>%
+        select(id, best_model) %>%
+        unnest(best_model)))
+
+  ggplot(res, aes(x = penalty, y = mean, colour = method)) +
+    geom_point() +
+    scale_y_continuous(limits = c(0, 1))
+
+  # Compare number of selected features
+  res <- tibble(method = rep(c("glmnet_1se"# , "glmnet_min"
+  ), each = 10)) %>%
+    bind_cols(bind_rows(#l1_tidy_folds %>%
+      #select(id, best_model) %>%
+      #unnest(best_model) %>%
+      #select(-.config),
+      # l1_1se_folds %>%
+      #   select(id, best_model) %>%
+      #   unnest(best_model),
+      x %>%
+        select(id, best_model) %>%
+        unnest(best_model)))
+
+  # l1_folds <- l1_glmnet_folds
+  ggplot(res, aes(x = method, y = n_features)) +
+    geom_boxplot()
+  # scale_y_continuous(limits = c(0, 1))
+
+  # Compute feature coefficients and
+  x <- x %>%
+    mutate(coef_estimates = map(final_wf, ~ {
+      .x %>%
+        extract_fit_parsnip() %>%
+        tidy() %>%
+        transmute(feature = term,
+                  estimate = -estimate) %>% # tidymodels bug
+        arrange(-estimate) %>%
+        filter(estimate != 0.0 & feature != "(Intercept)")
+    }))
+
+  # Count features
+  l1_min_feature_count <- x %>%
+    select(coef_estimates) %>%
+    unnest(coef_estimates) %>%
+    with_groups(feature, nest) %>%
+    mutate(n = map_dbl(data, nrow),
+           mean_coef = map_dbl(data, ~ mean(.x$estimate))) %>%
+    filter(n >= min_n) %>%
+    arrange(mean_coef)
+
+  # Plot
+  if(plot) {
+    if(is.null(y_nudge)) {
+      y_nudge <- max(l1_min_feature_count$mean_coef) +
+        sd(l1_min_feature_count$mean_coef)
+    }
+
+    p <- l1_min_feature_count %>%
+      mutate(feature = factor(feature, levels = l1_min_feature_count$feature)) %>%
+      unnest(data) %>%
+      ggplot(aes(x = feature, y = estimate)) +
+      geom_boxplot(aes(y = estimate)) +
+      geom_point() +
+      geom_label(mapping = aes(x = feature, y = y_nudge, label = n)) +
+      labs(x = "Feature",
+           y = "Importance (coefficient)") +
+      coord_flip()
+
+    print(p)
+  }
+
+  return(l1_min_feature_count)
+}

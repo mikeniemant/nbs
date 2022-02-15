@@ -59,14 +59,14 @@ dlcvBoruta <- function(folds, rec) {
                                 paste(.y,
                                       collapse = " + ")))
 
-      bor_recipe <- recipes::recipe(form, data = x)
+      bor_recipe <- recipes::recipe(form, data = .x)
 
       bor_workflow <- workflows::workflow() %>%
         workflows::add_recipe(bor_recipe) %>%
         workflows::add_model(lr_spec) # dt_spec
 
       bor_workflow <- bor_workflow %>%
-        workflows::fit(rsample::analysis(.x))
+        parsnip::fit(rsample::analysis(.x))
 
       return(bor_workflow)
     }),

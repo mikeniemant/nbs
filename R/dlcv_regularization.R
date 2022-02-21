@@ -78,9 +78,10 @@ dlcvInnerL1Glmnet <- function(folds, features = NA, lambda = "min") {
 #'
 #' @param folds rsample object with either group V-fold  or the standard V-fold cross validation folds
 #' @param rec recipes recipe used for training
+#' @param features vetor of features
 #' @return
 #' @export
-dlcvL1 <- function(folds, rec) {
+dlcvL1 <- function(folds, rec, features) {
   # Model
   l1_spec <- logistic_reg(penalty = tune(),
                           mixture = 1.0) %>%

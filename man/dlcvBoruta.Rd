@@ -4,7 +4,7 @@
 \alias{dlcvBoruta}
 \title{DLCV Boruta}
 \usage{
-dlcvBoruta(folds, rec)
+dlcvBoruta(folds, rec, features)
 }
 \arguments{
 \item{folds}{rsample object with either group V-fold or the standard V-fold cross validation folds.}

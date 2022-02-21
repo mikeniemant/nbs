@@ -6,7 +6,7 @@
 #' @param rec recipes recipe used for training
 #' @return Tibble with k outer loop models, and training and testing predictions.
 #' @export
-dlcvBoruta <- function(folds, rec) {
+dlcvBoruta <- function(folds, rec, features) {
   lr_spec <- parsnip::logistic_reg() %>%
     parsnip::set_mode("classification") %>%
     parsnip::set_engine("glm")
@@ -28,7 +28,7 @@ dlcvBoruta <- function(folds, rec) {
                                        values_to = "importance")) %>%
         dplyr::left_join(data.frame(var = names(bor_fit$finalDecision),
                                     decision = bor_fit$finalDecision,
-                                    row.names=NULL),
+                                    row.names = NULL),
                   by = "var")
 
       return(bor_imp)

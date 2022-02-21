@@ -4,12 +4,14 @@
 \alias{dlcvL1}
 \title{Double Loop Cross Validation L1}
 \usage{
-dlcvL1(folds, rec)
+dlcvL1(folds, rec, features)
 }
 \arguments{
 \item{folds}{rsample object with either group V-fold  or the standard V-fold cross validation folds}
 
 \item{rec}{recipes recipe used for training}
+
+\item{features}{vetor of features}
 }
 \value{
 

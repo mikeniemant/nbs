@@ -4,12 +4,14 @@
 \alias{dlcvRf}
 \title{DLCV Random Forest With Hyperparameter Optimization}
 \usage{
-dlcvRf(folds, rec)
+dlcvRf(folds, rec, rf_hp_grid = NULL)
 }
 \arguments{
 \item{folds}{rsample object with either group V-fold or the standard V-fold cross validation folds.}
 
 \item{rec}{recipes recipe used for training}
+
+\item{rf_hp_grid}{Tuning grid dials objects with ranges for the following three random forest hyperparameters: mtry, min_n and trees}
 }
 \value{
 Tibble with k outer loop models, and training and testing predictions.

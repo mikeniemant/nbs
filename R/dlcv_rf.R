@@ -36,9 +36,10 @@ dlcvRfNoHp <- function(folds, rec) {
 #'
 #' @param folds rsample object with either group V-fold or the standard V-fold cross validation folds.
 #' @param rec recipes recipe used for training
+#' @param rf_hp_grid Tuning grid dials objects with ranges for the following three random forest hyperparameters: mtry, min_n and trees
 #' @return Tibble with k outer loop models, and training and testing predictions.
 #' @export
-dlcvRf <- function(folds, rec) {
+dlcvRf <- function(folds, rec, rf_hp_grid = NULL) {
   rf_spec <- rand_forest(mtry = tune(),
                          min_n = tune(),
                          trees = tune()) %>%
@@ -49,10 +50,12 @@ dlcvRf <- function(folds, rec) {
     add_recipe(rec) %>%
     add_model(rf_spec)
 
-  rf_hp_grid <- grid_regular(trees(range = c(50, 350)),
-                             mtry(range = c(3, 12)),
-                             min_n(range = c(100, 300)),
-                             levels = 3)
+  if(is.null(rf_hp_grid)) {
+    rf_hp_grid <- grid_regular(trees(range = c(50, 350)),
+                               mtry(range = c(3, 12)),
+                               min_n(range = c(100, 300)),
+                               levels = 3)
+  }
 
   rf_folds <- folds %>%
     mutate(best_model = map(splits, ~ dlcvInner(.x, rf_workflow, rf_hp_grid))) %>%

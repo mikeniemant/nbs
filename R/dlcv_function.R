@@ -64,6 +64,7 @@ dlcvOuter <- function(x_outer, tuned_model) {
 
   output <- tibble(part = c(rep("train", times = nrow(analysis(x_outer))),
                             rep("test", times = nrow(assessment(x_outer)))),
+                   study_id = c(analysis(x_outer)$study_id, assessment(x_outer)$study_id),
                    y = c(analysis(x_outer)$y, assessment(x_outer)$y),
                    .pred_1 = c(trn_preds, tst_preds))
 

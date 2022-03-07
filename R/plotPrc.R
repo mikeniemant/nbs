@@ -7,7 +7,7 @@
 #' @return A ggplot containing the precision recall curve
 #' @export
 plotPrc <- function(x, group = NULL, title = NULL, breaks = F) {
-  x %>%
+  p <- x %>%
     ggplot2::ggplot(ggplot2::aes(x = recall, y = precision, colour = !!ggplot2::sym(group))) +
     ggplot2::geom_path() +
     ggplot2::geom_abline(slope = -1, intercept = 1, color = "black", linetype = 2) +

@@ -22,9 +22,9 @@ knitr::opts_chunk$set(
 # Generate data
 ## Dataset
 ```{r}
-nobs = 200
-nvar = 10
-nreal = 3
+nobs = 150
+nvar = 20
+nreal = 12
 
 set.seed(42)
 
@@ -62,10 +62,14 @@ theme_set(theme_bw() + theme(plot.title = element_text(hjust = 0.5)))
 # --> for now, we will use the multi_model_tibble dummy dataset
 
 # Define DLCV parameters
-form <- as.formula(paste0("y ~ study_id + ", paste(features, collapse = " + ")))
-
-group <- "study_id"
+group <- "study_id" # NA if no group
 strata <- "y"
+
+if(is.na(group)) {
+  form <- as.formula(paste0("y ~ ", paste(features, collapse = " + ")))  
+} else {
+  form <- as.formula(paste0("y ~ ", group, " + ", paste(features, collapse = " + ")))  
+}
 
 k <- 3
 form
@@ -73,7 +77,11 @@ form
 
 # Initialize DLCV
 ```{r}
-folds <- createFolds(x, k, group, strata)
+if(is.na(group)) {
+  folds <- createFolds(x, k, group, strata) # TODO: edit group parameter 
+} else{
+  folds <- createFolds(x, k, group, strata) 
+}
 
 # library(doParallel)
 # cl <- makePSOCKcluster(parallel::detectCores(logical = FALSE))
@@ -84,7 +92,7 @@ folds <- createFolds(x, k, group, strata)
 # Prepare recipe
 rec <- recipes::recipe(form, 
                        data = x) %>% 
-  update_role(study_id, new_role = "id")
+  update_role(!!group, new_role = "id")
   
 rec
 rec %>% recipes::prep() %>% recipes::bake(new_data = NULL) %>% head()
@@ -126,7 +134,10 @@ Random Forest
 - Transformation: none
 - Package: `randomForest`, and others
 - Hyperparameter:
-  - TODO
+  - ntree/range: number of trees
+  - mtry: number of features used during training one single tree
+  - min_n: minimum number of objects in one leaf
+  - boruta: yes/no, feature selection method performed before training the RF
 
 XGBoost
 
@@ -139,50 +150,49 @@ XGBoost
 
 # Select models and run DLCV
 ```{r}
-models <- c("lr", "l1", "boruta", "svm_no_hp", "svm_hp", "knn_no_hp", "knn_hp")
-dlcv_lr <- dlcvLr(folds, rec)
-dlcv_l1 <- dlcvL1(folds, rec, features)
-dlcv_boruta <- dlcvBoruta(folds, rec, features)
-# dlcv_svm_no_hp <- dlcvSvmNoHp(folds, rec)
-# dlcv_svm_hp <- dlcvSvm(folds, rec)
-# dlcv_knn_no_hp <- dlcvKnnNoHp(folds, rec)
-# dlcv_knn_hp <- dlcvKnn(folds, rec)
-dlcv_rf_no_hp <- dlcvRfNoHp(folds, rec)
+rf_hp_grid <- grid_regular(trees(range = c(100, 300)),
+                               mtry(range = c(2, 4)),
+                               min_n(range = c(5, 15)),
+                               levels = 3)
+
+models <- c("lr", "l1", "bor_lr") # "bor_rf", "rf_no_hp", "rf")
+
+res <- tibble(model = models) %>% 
+  mutate(dlcv = map(model, ~ {
+    print(.x)
+    if("lr" == .x)         x <- dlcvLr(folds, rec)
+    if("l1" == .x)         x <- dlcvL1(folds, rec, features)
+    if("bor_lr" == .x)     x <- dlcvBoruta(folds, rec, features)
+    if("svm_no_hp" == .x)  x <- dlcvSvmNoHp(folds, rec)
+    if("svm" == .x)        x <- dlcvSvm(folds, rec)
+    if("knn_no_hp" == .x)  x <- dlcvKnnNoHp(folds, rec)
+    if("knn" == .x)        x <- dlcvKnn(folds, rec)
+    if("bor_rf" == .x)     x <- dlcvRf(folds, rec, rf_hp_grid, boruta = T)
+    if("rf_no_hp" == .x)   x <- dlcvRfNoHp(folds, rec)
+    if("rf" == .x)         x <- dlcvRf(folds, rec, rf_hp_grid)
+    return(x)
+  }))
 ```
 
 # Combine outputs
 ```{r}
-# Define data frame
-obj_names <- ls(pattern = "dlcv_")
-obj_models <- unname(sapply(obj_names, function(x) stringr::str_sub(x, 6, nchar(x))))
-res <- lapply(obj_names, get)
-names(res) <- obj_models
-
-res_metrics <- tibble(model = obj_models) %>% 
-  mutate(dlcv = res)
-
-# Reorder data frame
-res_metrics <- res_metrics %>% 
-  slice(match(models, res_metrics$model))
-
 # Compute AUC
-res_metrics <- res_metrics %>% 
+res <- res %>% 
   mutate(auc = map2(model, dlcv, ~ computeCvAUC(folds = .y, model = .x)))
 
 # Compute ROC
-res_metrics <- res_metrics %>% 
+res <- res %>% 
   mutate(trn_preds = map(dlcv, ~ .x %>% select(trn_preds) %>% unnest(trn_preds)),
          tst_preds = map(dlcv, ~ .x %>% select(tst_preds) %>% unnest(tst_preds)),
          trn_roc = map(trn_preds, ~ roc_curve(.x, y, .pred_1)),
-         tst_roc = map(tst_preds, ~ roc_curve(.x, y, .pred_1))) %>% 
-  select(-dlcv)
+         tst_roc = map(tst_preds, ~ roc_curve(.x, y, .pred_1)))
 ```
 
 # Analyze data
 ## DLCV performance
 ```{r}
 # Show AUC
-res_metrics %>% 
+res %>% 
   select(auc) %>% 
   unnest(auc) %>% 
   mutate(txt = paste0(round(mean_auc, 2), " (", 
@@ -192,25 +202,25 @@ res_metrics %>%
   pivot_wider(names_from = "part", values_from = "txt")
 
 # Show train/test ROCs
-res_metrics %>% 
+res %>% 
   select(model, trn_preds) %>% 
   mutate(roc = map(trn_preds, ~ roc_curve(.x, y, .pred_1))) %>% 
   select(model, roc) %>% 
   unnest(roc) %>% 
   plotRoc(group = "model", title = NULL)
 
-plotDisMet(x = res_metrics, bl = prel_diag_metrics, title = "10CV LR", group = "model", legend = T)
+plotDisMet(x = res, bl = prel_diag_metrics, title = "10CV LR", group = "model", legend = T)
 ```
 
 ## Individual model performance
 ```{r}
-fipLr(dlcv_lr, plot = T)
-fipL1(dlcv_l1, min_n = 3, plot = T)
-fipBoruta(dlcv_boruta, plot = T)
+fipLr(res$dlcv[[1]], plot = T)
+fipL1(res$dlcv[[2]], min_n = 3, plot = T)
+fipBoruta(res$dlcv[[3]], plot = T)
 
-plotDisMet(x = dlcv_boruta, 
+plotDisMet(x = res$dlcv[[3]], 
            bl = prel_diag_metrics, 
-           title = "10CV bor lr",
+           title = "10CV bor random forest",
            group = "id", 
            legend = T)
 ```
@@ -218,7 +228,7 @@ plotDisMet(x = dlcv_boruta,
 # Save output
 ```{r}
 # Save object
-# save(res_metrics, file = "tmp")
+# save(res, file = "tmp")
 ```
 
 # Sanity checks

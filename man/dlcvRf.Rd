@@ -4,7 +4,7 @@
 \alias{dlcvRf}
 \title{DLCV Random Forest With Hyperparameter Optimization}
 \usage{
-dlcvRf(folds, rec, rf_hp_grid = NULL)
+dlcvRf(folds, rec, rf_hp_grid = NULL, boruta = F)
 }
 \arguments{
 \item{folds}{rsample object with either group V-fold or the standard V-fold cross validation folds.}
@@ -12,6 +12,8 @@ dlcvRf(folds, rec, rf_hp_grid = NULL)
 \item{rec}{recipes recipe used for training}
 
 \item{rf_hp_grid}{Tuning grid dials objects with ranges for the following three random forest hyperparameters: mtry, min_n and trees}
+
+\item{boruta}{Feature selection with Boruta}
 }
 \value{
 Tibble with k outer loop models, and training and testing predictions.

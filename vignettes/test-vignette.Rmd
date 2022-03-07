@@ -21,7 +21,8 @@ knitr::opts_chunk$set(
 
 ```{r setup}
 library(nbs)
-# library(tidymodels)
+library(tidyverse)
+library(tidymodels)
 ggplot2::theme_set(ggplot2::theme_bw())
 ```
 
@@ -66,9 +67,4 @@ plotPrc(dat %>%
 ```{r}
 dat <- dat %>% 
   dplyr::mutate(auprc = purrr::map_dbl(dat, ~ yardstick::pr_auc_vec(.x$y, .x$pred)))
-```
-
-## Discriminative metrics
-```{r}
-dat
 ```

@@ -4,7 +4,7 @@
 \alias{plotRoc}
 \title{Plot Receiver Operator Curve}
 \usage{
-plotRoc(x, group = NULL, title = NULL)
+plotRoc(x, group = NULL, title = NULL, breaks = F)
 }
 \arguments{
 \item{x}{Tibble with sensitivity and specificity computed by the performance R package}
@@ -12,6 +12,8 @@ plotRoc(x, group = NULL, title = NULL)
 \item{group}{Variable to group coordinates}
 
 \item{title}{Plot title}
+
+\item{breaks}{Boolean to plot additional breaks and lines}
 }
 \value{
 A ggplot containing the receiver operator curve

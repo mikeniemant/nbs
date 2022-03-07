@@ -12,6 +12,8 @@ plotPrc(x, group = NULL, title = NULL)
 \item{group}{Variable to group coordinates}
 
 \item{title}{Plot title}
+
+\item{breaks}{Boolean to plot additional breaks and lines}
 }
 \value{
 A ggplot containing the precision recall curve

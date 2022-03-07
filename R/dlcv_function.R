@@ -162,35 +162,36 @@ computeCvAUC <- function(folds, model, confidence = 0.95) {
 #' @param group Group parameter
 #' @param title Plot title
 #' @param legend Boolean to visualise legend
+#' @param breaks Boolean to plot additional breaks and lines
 #' @return Cowplot visualisation with four plots; ROC and PRC curves for both the training and tests folds.
 #' @export
-plotDisMet <- function(x, bl = NA, group = "id", title = "", legend = F) {
+plotDisMet <- function(x, bl = NA, group = "id", title = "", legend = F, breaks = F) {
   p1 <- x %>%
     mutate(roc = map(trn_preds, ~ roc_curve(.x, y, .pred_1))) %>%
     select(!!group, roc) %>%
     unnest(roc) %>%
-    plotRoc(group = group, title = paste(title, "ROC train folds")) +
+    plotRoc(group = group, title = paste(title, "ROC train folds"), breaks = breaks) +
     theme(legend.position = "none")
 
   p2 <- x %>%
     mutate(roc = map(tst_preds, ~ roc_curve(.x, y, .pred_1))) %>%
     select(!!group, roc) %>%
     unnest(roc) %>%
-    plotRoc(group = group, title = paste(title, "ROC test folds")) +
+    plotRoc(group = group, title = paste(title, "ROC test folds"), breaks = breaks) +
     theme(legend.position = "none")
 
   p3 <- x %>%
     mutate(prc = map(trn_preds, ~ pr_curve(.x, y, .pred_1))) %>%
     select(!!group, prc) %>%
     unnest(prc) %>%
-    plotPrc(group = group, title = paste(title, "PRC train folds")) +
+    plotPrc(group = group, title = paste(title, "PRC train folds"), breaks = breaks) +
     theme(legend.position = "none")
 
   p4 <- x %>%
     mutate(prc = map(tst_preds, ~ pr_curve(.x, y, .pred_1))) %>%
     select(!!group, prc) %>%
     unnest(prc) %>%
-    plotPrc(group = group, title = paste(title, "PRC test folds")) +
+    plotPrc(group = group, title = paste(title, "PRC test folds"), breaks = breaks) +
     theme(legend.position = "none")
 
   if(all(!is.na(bl))) {

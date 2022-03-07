@@ -4,7 +4,7 @@
 \alias{plotDisMet}
 \title{Plot Discriminative Metrics}
 \usage{
-plotDisMet(x, bl = NA, group = "id", title = "", legend = F)
+plotDisMet(x, bl = NA, group = "id", title = "", legend = F, breaks = F)
 }
 \arguments{
 \item{x}{Nested tibble object}
@@ -16,6 +16,8 @@ plotDisMet(x, bl = NA, group = "id", title = "", legend = F)
 \item{title}{Plot title}
 
 \item{legend}{Boolean to visualise legend}
+
+\item{breaks}{Boolean to plot additional breaks and lines}
 }
 \value{
 Cowplot visualisation with four plots; ROC and PRC curves for both the training and tests folds.

@@ -9,7 +9,9 @@ dlcvBoruta(folds, rec, features)
 \arguments{
 \item{folds}{rsample object with either group V-fold or the standard V-fold cross validation folds.}
 
-\item{rec}{recipes recipe used for training}
+\item{rec}{recipe object used for training}
+
+\item{features}{features}
 }
 \value{
 Tibble with k outer loop models, and training and testing predictions.

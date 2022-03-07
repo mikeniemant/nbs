@@ -3,7 +3,8 @@
 #' Double Loop Cross Validation with Boruta. Features are selected in the inner loop and used in the outer loop to train the model that is subsequently tested on the left-out fold in the outer loop.
 #'
 #' @param folds rsample object with either group V-fold or the standard V-fold cross validation folds.
-#' @param rec recipes recipe used for training
+#' @param rec recipe object used for training
+#' @param features features
 #' @return Tibble with k outer loop models, and training and testing predictions.
 #' @export
 dlcvBoruta <- function(folds, rec, features) {

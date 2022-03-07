@@ -30,4 +30,5 @@ plotPrc <- function(x, group = NULL, title = NULL, breaks = F) {
                                   expand = c(0.005, 0.005)) +
       ggplot2::coord_equal()
   }
+  print(p)
 }

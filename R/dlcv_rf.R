@@ -91,7 +91,7 @@ dlcvRf <- function(folds, rec, rf_hp_grid = NULL, boruta = F) {
       mutate(wf = map(form, ~ {
         rec <- recipe(.x,
                       data = x) %>%
-          update_role(study_id, new_role = "id")
+          update_role(group, new_role = "id")
 
         rf_workflow <- workflow() %>% add_recipe(rec) %>% add_model(rf_spec)
         return(rf_workflow)

@@ -16,7 +16,12 @@ plotPrc <- function(x, group = NULL, title = NULL, breaks = F) {
                   colour = gsub("(^|[[:space:]])([[:alpha:]])", "\\1\\U\\2",
                                 group,
                                 perl = TRUE),
-                  title = title)
+                  title = title) +
+    ggplot2::scale_x_continuous(limits = c(0, 1),
+                                expand = c(0.005, 0.005)) +
+    ggplot2::scale_y_continuous(limits = c(0, 1),
+                                expand = c(0.005, 0.005)) +
+    ggplot2::coord_equal()
 
   if(breaks) {
     p <- p +

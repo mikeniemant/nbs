@@ -62,17 +62,16 @@ dlcvOuter <- function(x_outer, tuned_model) {
   trn_preds <- predict(tuned_model, analysis(x_outer), type = "prob")$.pred_1
   tst_preds <- predict(tuned_model, assessment(x_outer), type = "prob")$.pred_1
 
-  if(is.na(group)) {
-    output <- tibble(part = c(rep("train", times = nrow(analysis(x_outer))),
-                              rep("test", times = nrow(assessment(x_outer)))),
-                     y = c(analysis(x_outer)$y, assessment(x_outer)$y),
-                     .pred_1 = c(trn_preds, tst_preds))
-  } else {
-    output <- tibble(part = c(rep("train", times = nrow(analysis(x_outer))),
-                              rep("test", times = nrow(assessment(x_outer)))),
-                     !!group := c(analysis(x_outer)[, group, drop = T], assessment(x_outer)[, group, drop = T]),
-                     y = c(analysis(x_outer)$y, assessment(x_outer)$y),
-                     .pred_1 = c(trn_preds, tst_preds))
+  output <- tibble(part = c(rep("train", times = nrow(analysis(x_outer))),
+                            rep("test", times = nrow(assessment(x_outer)))),
+                   y = c(analysis(x_outer)$y, assessment(x_outer)$y),
+                   .pred_1 = c(trn_preds, tst_preds))
+
+  if(length(ls(pattern = "f_")) > 0) {
+    output <- output %>%
+      mutate(!!f_1 := c(analysis(x_outer)[, f_1, drop = T], assessment(x_outer)[, f_1, drop = T]),
+             !!f_2 := c(analysis(x_outer)[, f_2, drop = T], assessment(x_outer)[, f_2, drop = T]),
+             !!f_3 := c(analysis(x_outer)[, f_3, drop = T], assessment(x_outer)[, f_3, drop = T]))
   }
 
   output_n <- output %>%

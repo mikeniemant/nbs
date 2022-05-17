@@ -14,17 +14,15 @@ computeCalibration <- function(labs, preds, event_level = "1", scale = F, plot =
     min_pred <- min(preds)
     max_pred <- max(preds)
     preds <- (preds - min_pred) / (max_pred - min_pred)
-    preds_cut <- cut(preds, 10)
+    preds_cut <- cut(preds, 10, include.lowest = T)
+
   } else {
     preds_cut <- cut(preds, quantile(preds, prob = seq(0.00, 1.0, 0.1)), include.lowest = T)
   }
-  # TODO: scale is not working
 
   df <- tibble(pred = preds,
                lab = labs) %>%
-    mutate(preds_cut = cut(preds,
-                           quantile(preds, prob = seq(0.00, 1.0, 0.1)),
-                           include.lowest = T)) %>%
+    mutate(preds_cut) %>%
     arrange(preds_cut) %>%
     with_groups(preds_cut, ~ nest(.x))
 

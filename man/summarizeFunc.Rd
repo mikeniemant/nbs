@@ -23,6 +23,3 @@ summarizeFunc(x, colname, check_normality = T, normality = T, print_plot = F)
 \description{
 Summarize Function
 }
-\examples{
-mtcars \%>\% with_groups(am, ~ .x \%>\% summarizeFunc("hp"))
-}

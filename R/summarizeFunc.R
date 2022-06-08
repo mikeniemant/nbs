@@ -9,8 +9,6 @@
 #' @return
 #' @export
 #'
-#' @examples
-#' mtcars %>% with_groups(am, ~ .x %>% summarizeFunc("hp"))
 summarizeFunc <- function(x, colname, check_normality = T, normality = T, print_plot = F) {
   if(check_normality) {
     # Check for normality with shapiro test

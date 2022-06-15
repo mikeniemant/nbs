@@ -73,6 +73,7 @@ dlcvOuter <- function(x_outer, tuned_model) {
              !!f_2 := c(analysis(x_outer)[, f_2, drop = T], assessment(x_outer)[, f_2, drop = T]),
              !!f_3 := c(analysis(x_outer)[, f_3, drop = T], assessment(x_outer)[, f_3, drop = T]))
   }
+  # TODO: fix this later
 
   output_n <- output %>%
     with_groups(part, ~ .x %>% nest()) %>%
@@ -169,28 +170,28 @@ plotDisMet <- function(x, bl = NA, group = "id", title = "", legend = F, breaks 
     mutate(roc = map(trn_preds, ~ roc_curve(.x, y, .pred_1))) %>%
     select(!!group, roc) %>%
     unnest(roc) %>%
-    plotRoc(group = group, title = paste(title, "ROC train folds"), breaks = breaks) +
+    plotRoc(group = group, title = paste(title, "ROC train folds"), breaks = breaks, print_plot = F) +
     theme(legend.position = "none")
 
   p2 <- x %>%
     mutate(roc = map(tst_preds, ~ roc_curve(.x, y, .pred_1))) %>%
     select(!!group, roc) %>%
     unnest(roc) %>%
-    plotRoc(group = group, title = paste(title, "ROC test folds"), breaks = breaks) +
+    plotRoc(group = group, title = paste(title, "ROC test folds"), breaks = breaks, print_plot = F) +
     theme(legend.position = "none")
 
   p3 <- x %>%
     mutate(prc = map(trn_preds, ~ pr_curve(.x, y, .pred_1))) %>%
     select(!!group, prc) %>%
     unnest(prc) %>%
-    plotPrc(group = group, title = paste(title, "PRC train folds"), breaks = breaks) +
+    plotPrc(group = group, title = paste(title, "PRC train folds"), breaks = breaks, print_plot = F) +
     theme(legend.position = "none")
 
   p4 <- x %>%
     mutate(prc = map(tst_preds, ~ pr_curve(.x, y, .pred_1))) %>%
     select(!!group, prc) %>%
     unnest(prc) %>%
-    plotPrc(group = group, title = paste(title, "PRC test folds"), breaks = breaks) +
+    plotPrc(group = group, title = paste(title, "PRC test folds"), breaks = breaks, print_plot = F) +
     theme(legend.position = "none")
 
   if(all(!is.na(bl))) {

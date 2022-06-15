@@ -6,7 +6,7 @@
 #' @param breaks Boolean to plot additional breaks and lines
 #' @return A ggplot containing the receiver operator curve
 #' @export
-plotRoc <- function(x, group = NULL, title = NULL, breaks = F) {
+plotRoc <- function(x, group = NULL, title = NULL, breaks = F, print_plot) {
   p <- x %>%
     ggplot2::ggplot(ggplot2::aes(x = 1-specificity, y = sensitivity, colour = !!ggplot2::sym(group))) +
     ggplot2::geom_path() +
@@ -35,5 +35,10 @@ plotRoc <- function(x, group = NULL, title = NULL, breaks = F) {
                                   expand = c(0.005, 0.005)) +
       ggplot2::coord_equal()
   }
-  print(p)
+
+  if(print_plot) {
+    print(p)
+  } else {
+    return(p)
+  }
 }

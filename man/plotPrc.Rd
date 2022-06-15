@@ -4,7 +4,7 @@
 \alias{plotPrc}
 \title{Plot Precision Recall Curve}
 \usage{
-plotPrc(x, group = NULL, title = NULL)
+plotPrc(x, group = NULL, title = NULL, breaks = F, print_plot = T)
 }
 \arguments{
 \item{x}{Tibble with precision and recall computed by the performance R package}

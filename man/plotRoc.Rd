@@ -4,7 +4,7 @@
 \alias{plotRoc}
 \title{Plot Receiver Operator Curve}
 \usage{
-plotRoc(x, group = NULL, title = NULL, breaks = F)
+plotRoc(x, group = NULL, title = NULL, breaks = F, print_plot)
 }
 \arguments{
 \item{x}{Tibble with sensitivity and specificity computed by the performance R package}
